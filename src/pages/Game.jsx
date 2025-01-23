@@ -1,16 +1,32 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FaceDetection from '../components/faceDetection'
 
 function Game() {
+    const expressions = ['blink left eye', 'blink right eye', 'turn your head left', 'turn your head right', 'smile', 'sad', 'cry', 'surprised', 'angry', 'laugh', 'neutral']
+
     const [score, setScore] = useState(0)
     const [level, setLevel] = useState(1)
     const [accuracy, setAcuracy] = useState(0)
     const [gameStart, setGameStart] = useState(false)
-    const [targetExpression, setTargetExpression] = useState('')
+    const [targetExpression, setTargetExpression] = useState(expressions[0])
     const [detectedExpression, setDetectedExpression] = useState('')
+
+    if (detectedExpression === targetExpression) {
+        handleLevelCompletion()
+    }
 
     function toggleGame() {
         setGameStart(!gameStart)
+    }
+
+    function handleLevelCompletion() {
+        setScore(prevScore => prevScore + 10)
+        if(level < expressions.length -1) {
+            setLevel(prevLevel => prevLevel + 1)
+            setTargetExpression(expressions[level])
+        } else {
+            alert("Congratulations! You've completed all levels!!")
+        }
     }
 
     return (
@@ -26,8 +42,8 @@ function Game() {
                         <div>Target Expression: {targetExpression}</div>
                         <div>Detected Expression: {detectedExpression || 'None'}</div>
                         <FaceDetection 
-                            setScore={setScore} 
-                            setLevel={setLevel}
+                            level={level}
+                            setDetectedExpression={setDetectedExpression}
                         />
                     </div>
                 ) : (

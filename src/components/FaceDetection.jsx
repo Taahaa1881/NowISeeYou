@@ -3,10 +3,9 @@ import { FaceMesh } from '@mediapipe/face_mesh'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import * as cam from '@mediapipe/camera_utils'
 
-function FaceDetection({setScore, score, setLevel, level}) {
+function FaceDetection({level, setDetectedExpression}) {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
-    const expressions = ['blink left eye', 'blink right eye', 'turn your head left', 'turn your head right', 'smile', 'sad', 'cry', 'surprised', 'angry', 'laugh', 'neutral']
 
     useEffect(() => {
         const videoElement = videoRef.current
@@ -51,6 +50,9 @@ function FaceDetection({setScore, score, setLevel, level}) {
                     })
                     drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 2.5 })
                 }
+
+                const expression = detectExpression(results.multiFaceLandmarks[0])
+                setDetectedExpression(expression || 'no face')
             }
 
             // restore the canvas to its original state
@@ -81,6 +83,45 @@ function FaceDetection({setScore, score, setLevel, level}) {
             }
           }
     }, [level])
+
+    function detectExpression(landmarks) {
+        const mouthOpen = landmarks[13].y - landmarks[14].y
+        const leftEyeBlink = landmarks[159].y - landmarks[145].y
+        const rightEyeBlink = landmarks[386].y - landmarks[374].y
+        const mouthWidth = landmarks[308].x - landmarks[78].x
+        const mouthHeight = landmarks[13].y - landmarks[14].y
+        const headTilt = landmarks[234].x - landmarks[454].x
+
+        // threshold for expressions
+        const blinkLeftEyeThreshold = leftEyeBlink < 0.015 && rightEyeBlink > 0.02; // Left eye blink
+        const blinkRightEyeThreshold = rightEyeBlink < 0.015 && leftEyeBlink > 0.02; // Right eye blink
+        const turnHeadLeftThreshold = headTilt > 0.2; // Turn head left
+        const turnHeadRightThreshold = headTilt < -0.2; // Turn head right
+        const smileThreshold = mouthWidth / mouthHeight > 1.8; // Wide mouth indicates a smile
+        const sadThreshold = mouthWidth / mouthHeight < 1.2 && mouthOpen < 0.02; // Narrow mouth, no smile
+        const cryThreshold = sadThreshold && mouthOpen < -0.08; // Combination of sad and open mouth
+        const surprisedThreshold = mouthOpen < -0.05 && leftEyeBlink < -0.02 && rightEyeBlink < -0.02 && (mouthHeight < -0.85 || mouthWidth < 0.85); // Open mouth and eyes
+        const angryThreshold = mouthOpen > 0.05 && leftEyeBlink < -0.02 && rightEyeBlink < -0.02; // Furrowed brows and mouth open
+        const laughThreshold = smileThreshold && mouthOpen < -0.1; // Combination of smile and open mouth
+        
+        console.log('Mouth Open:', mouthOpen);
+        console.log('Left Eye Blink:', leftEyeBlink);
+        console.log('Right Eye Blink:', rightEyeBlink);
+        console.log('Mouth Width/Height:', mouthWidth / mouthHeight);
+        console.log("hedtilt", headTilt)
+        
+        if (smileThreshold) return 'smile'
+        else if (laughThreshold) return 'laugh'
+        else if (cryThreshold) return 'cry'
+        else if (surprisedThreshold) return 'surprised';
+        else if (sadThreshold) return 'sad';
+        else if (angryThreshold) return 'angry';
+        else if (blinkLeftEyeThreshold) return 'blink left eye';
+        else if (blinkRightEyeThreshold) return 'blink right eye';
+        else if (turnHeadLeftThreshold) return 'turn your head left';
+        else if (turnHeadRightThreshold) return 'turn your head right';
+        else return 'neutral'
+    }
 
     return (
         <div>
