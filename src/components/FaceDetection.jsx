@@ -1,94 +1,113 @@
-import React, { useEffect, useRef } from "react"
-import * as tf from "@tensorflow/tfjs"
-import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection"
+import React, { useEffect, useRef, useState } from 'react'
+import { FaceMesh } from '@mediapipe/face_mesh'
+import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
+import * as cam from '@mediapipe/camera_utils'
 
-const FaceDetection = () => {
+function FaceDetection({setScore, score, setLevel, level}) {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
+    const expressions = ['blink left eye', 'blink right eye', 'turn your head left', 'turn your head right', 'smile', 'sad', 'cry', 'surprised', 'angry', 'laugh', 'neutral']
 
     useEffect(() => {
-        async function loadModel() {
-            const model = await faceLandmarksDetection.createDetector(
-                faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
-                {
-                    runtime: "mediapipe",
-                    solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh",
-                    wasmPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh_wasm_bin.js",
-                }
+        const videoElement = videoRef.current
+        const canvasElement = canvasRef.current
+        const canvasCtx = canvasElement.getContext('2d')
+
+        // Initialized FaceMesh model 
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+        })
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+        })
+
+        faceMesh.onResults((results) => {
+            // Clear canvas
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
+
+            // Flip the canvas horizontally
+            canvasCtx.save()
+            canvasCtx.scale(-1, 1)
+            canvasCtx.translate(-canvasElement.width, 0)
+
+            // Draw video frame on canvas
+            canvasCtx.drawImage(
+                results.image,
+                0,
+                0,
+                canvasElement.width,
+                canvasElement.height
             )
-            startVideo(model)
-        }
 
-        async function startVideo(model) {
-            const video = videoRef.current
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                })
-                video.srcObject = stream
-                video.onloadedmetadata = () => {
-                    video.play()
-
-                    // Match canvas size with video
-                    const canvas = canvasRef.current
-                    canvas.width = video.videoWidth
-                    canvas.height = video.videoHeight
-
-                    detectFaces(model, video)
-                }
-            } catch (err) {
-                console.error("Error accessing webcam: ", err)
-            }
-        }
-
-        async function detectFaces(model, video) {
-            const canvas = canvasRef.current
-            const ctx = canvas.getContext("2d")
-
-            async function detect() {
-                const predictions = await model.estimateFaces(video)
-
-                // Clear canvas and draw video frame
-                ctx.clearRect(0, 0, canvas.width, canvas.height)
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-                if (predictions.length > 0) {
-                    predictions.forEach((prediction) => {
-                        const keypoints = prediction.keypoints
-
-                        // Draw landmarks
-                        keypoints.forEach(({ x, y }) => {
-                            ctx.beginPath()
-                            ctx.arc(x, y, 2, 0, 2 * Math.PI)
-                            ctx.fillStyle = "red"
-                            ctx.fill()
-                        })
+            // Draw face landmarks
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                for (const landmarks of results.multiFaceLandmarks) {
+                    drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_TESSELATION, {
+                        color: '#C0C0C070',
+                        lineWidth: 1,
                     })
+                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 2.5 })
                 }
-
-                requestAnimationFrame(detect)
             }
-            detect()
+
+            // restore the canvas to its original state
+            canvasCtx.restore() 
+        })
+
+        // webcam video
+        let camera
+
+        if (typeof videoElement !== 'undefined' && videoElement !== null) {
+            camera = new cam.Camera(videoElement, {
+                onFrame: async () => {
+                await faceMesh.send({ image: videoElement })
+                },
+                width: 640,
+                height: 480,
+            })
+            camera.start()
         }
 
-        loadModel()
-    }, [])
+        return () => {
+            if (camera) {
+                camera.stop()
+            }
+            // stop and reset video stream
+            if (videoElement.srcObject) {
+                videoElement.srcObject.getTracks().forEach((track) => track.stop())
+            }
+          }
+    }, [level])
 
     return (
-        <div className="relative w-full h-full flex justify-center items-center">
+        <div>
             <video
                 ref={videoRef}
-                className="border rounded-lg"
-                style={{ width: "640px", height: "480px" }}
-                autoPlay
-                muted
+                style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px',
+                    zIndex: -1,
+                    visibility: 'hidden', 
+                    width: '640px',
+                    height: '480px',
+                }}
+                playsInline
             />
+
             <canvas
                 ref={canvasRef}
-                // className="absolute top-0 left-0"
-                style={{ width: "640px", height: "480px" }}
-            ></canvas>
+                style={{
+                    border: '1px solid black',
+                    width: '640px',
+                    height: '480px',
+                }}
+                width="640"
+                height="480"
+            />
         </div>
     )
 }
