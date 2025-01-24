@@ -93,22 +93,44 @@ function FaceDetection({level, setDetectedExpression}) {
         const headTilt = landmarks[234].x - landmarks[454].x
 
         // threshold for expressions
-        const blinkLeftEyeThreshold = leftEyeBlink < 0.015 && rightEyeBlink > 0.02; // Left eye blink
-        const blinkRightEyeThreshold = rightEyeBlink < 0.015 && leftEyeBlink > 0.02; // Right eye blink
-        const turnHeadLeftThreshold = headTilt > 0.2; // Turn head left
-        const turnHeadRightThreshold = headTilt < -0.2; // Turn head right
-        const smileThreshold = mouthWidth / mouthHeight > 1.8; // Wide mouth indicates a smile
-        const sadThreshold = mouthWidth / mouthHeight < 1.2 && mouthOpen < 0.02; // Narrow mouth, no smile
-        const cryThreshold = sadThreshold && mouthOpen < -0.08; // Combination of sad and open mouth
-        const surprisedThreshold = mouthOpen < -0.05 && leftEyeBlink < -0.02 && rightEyeBlink < -0.02 && (mouthHeight < -0.85 || mouthWidth < 0.85); // Open mouth and eyes
-        const angryThreshold = mouthOpen > 0.05 && leftEyeBlink < -0.02 && rightEyeBlink < -0.02; // Furrowed brows and mouth open
-        const laughThreshold = smileThreshold && mouthOpen < -0.1; // Combination of smile and open mouth
+        const blinkLeftEyeThreshold = leftEyeBlink < -0.02 && leftEyeBlink > -0.06; // Fine-tune for left-eye blink
+        const blinkRightEyeThreshold = rightEyeBlink < -0.02 && rightEyeBlink > -0.06; // Right-eye blink adjustment
+        const turnHeadLeftThreshold = headTilt > 0.1; // Slightly easier to trigger
+        const turnHeadRightThreshold = headTilt < -0.1;
+        const smileThreshold = mouthWidth / mouthHeight > 1.5 && mouthOpen > 0.02; // Allow smaller smiles
+        const sadThreshold = mouthWidth / mouthHeight < 1.2 && mouthOpen > 0.01; // Narrower mouth and slight openness
+        const cryThreshold = sadThreshold && mouthOpen > 0.05; // Open mouth in sadness
+        const surprisedThreshold =
+        mouthOpen > 0.05 &&
+        leftEyeBlink > -0.02 &&
+        rightEyeBlink > -0.02 &&
+        mouthWidth / mouthHeight < 1.8; // Open mouth and eyes, but not too wide
+        const angryThreshold =
+        mouthOpen > 0.03 &&
+        leftEyeBlink < -0.03 &&
+        rightEyeBlink < -0.03; // Strongly furrowed brows with open mouth
+        const laughThreshold = smileThreshold && mouthOpen > 0.08; // Wide smile and open mouth
+
         
-        console.log('Mouth Open:', mouthOpen);
-        console.log('Left Eye Blink:', leftEyeBlink);
-        console.log('Right Eye Blink:', rightEyeBlink);
-        console.log('Mouth Width/Height:', mouthWidth / mouthHeight);
-        console.log("hedtilt", headTilt)
+        console.log('Threshold Debug:', {
+            mouthOpen,
+            leftEyeBlink,
+            rightEyeBlink,
+            mouthWidth,
+            mouthHeight,
+            headTilt,
+            smileThreshold,
+            sadThreshold,
+            cryThreshold,
+            surprisedThreshold,
+            angryThreshold,
+            laughThreshold,
+            blinkLeftEyeThreshold,
+            blinkRightEyeThreshold,
+            turnHeadLeftThreshold,
+            turnHeadRightThreshold
+        });
+
         
         if (smileThreshold) return 'smile'
         else if (laughThreshold) return 'laugh'
