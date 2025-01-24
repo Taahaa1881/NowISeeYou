@@ -87,6 +87,7 @@ function FaceDetection({ level, setDetectedExpression }) {
             }
           }
     }, [level])
+    
 
     function updateExpressionArray(expression) {
         setExpressionArray((prevExpression) => {
@@ -108,70 +109,70 @@ function FaceDetection({ level, setDetectedExpression }) {
             }
 
             // console.log('Updated Expression Array:', updatedExpressionArray);
-
             return updatedExpressionArray
         }) 
     }
 
     function detectExpression(landmarks) {
-        const mouthOpen = landmarks[13].y - landmarks[14].y
-        const leftEyeBlink = landmarks[159].y - landmarks[145].y
-        const rightEyeBlink = landmarks[386].y - landmarks[374].y
+        const closeLeftEye = landmarks[386].y - landmarks[374].y
+        const closeRightEye = landmarks[159].y - landmarks[145].y
         const mouthWidth = landmarks[308].x - landmarks[78].x
         const mouthHeight = landmarks[13].y - landmarks[14].y
-        const headTilt = landmarks[234].x - landmarks[454].x
+        const faceTurnedRight = landmarks[234].x - landmarks[127].x 
+        const faceTurnedLeft = landmarks[356].x - landmarks[454].x 
+        const headTilt = landmarks[234].x - landmarks[454].x;
 
         // threshold for expressions
-        const blinkLeftEyeThreshold = leftEyeBlink < -0.02 && leftEyeBlink > -0.06; // Fine-tune for left-eye blink
-        const blinkRightEyeThreshold = rightEyeBlink < -0.02 && rightEyeBlink > -0.06; // Right-eye blink adjustment
-        const turnHeadLeftThreshold = headTilt > 0.1; // Slightly easier to trigger
-        const turnHeadRightThreshold = headTilt < -0.1;
-        const smileThreshold = mouthWidth / mouthHeight > 1.5 && mouthOpen > 0.02; // Allow smaller smiles
+        const leftEyeClosed = closeLeftEye > -0.01
+        const rightEyeClosed = closeRightEye > -0.01
+        const smileThreshold = mouthWidth > 0.1 && mouthHeight < 0.0001
+         
         const sadThreshold = mouthWidth / mouthHeight < 1.2 && mouthOpen > 0.01; // Narrower mouth and slight openness
         const cryThreshold = sadThreshold && mouthOpen > 0.05; // Open mouth in sadness
         const surprisedThreshold =
-        mouthOpen > 0.05 &&
-        leftEyeBlink > -0.02 &&
-        rightEyeBlink > -0.02 &&
+        mouthOpen > 0.05 
+        // &&
+        // leftEyeBlink > -0.02 &&
+        // rightEyeBlink > -0.02 &&
         mouthWidth / mouthHeight < 1.8; // Open mouth and eyes, but not too wide
         const angryThreshold =
-        mouthOpen > 0.03 &&
-        leftEyeBlink < -0.03 &&
-        rightEyeBlink < -0.03; // Strongly furrowed brows with open mouth
+        mouthOpen > 0.03 
+        // &&
+        // leftEyeBlink < -0.03 &&
+        // rightEyeBlink < -0.03; // Strongly furrowed brows with open mouth
         const laughThreshold = smileThreshold && mouthOpen > 0.08; // Wide smile and open mouth
+        const neutralFace = Math.abs(headTilt) > 0.25 && Math.abs(headTilt) < 0.3 && !leftEyeClosed && !rightEyeClosed && !smileThreshold 
 
         
         console.log('Threshold Debug:', {
-            mouthOpen,
-            leftEyeBlink,
-            rightEyeBlink,
+            headTilt,
+            closeLeftEye,
+            closeRightEye,
             mouthWidth,
             mouthHeight,
-            headTilt,
             smileThreshold,
             sadThreshold,
             cryThreshold,
             surprisedThreshold,
             angryThreshold,
             laughThreshold,
-            blinkLeftEyeThreshold,
-            blinkRightEyeThreshold,
-            turnHeadLeftThreshold,
-            turnHeadRightThreshold
-        });
+        })
 
+        if(neutralFace) return 'neutral face'
+        if(smileThreshold) return 'smile'
+        if(leftEyeClosed) return 'left eye closed'
+        if(rightEyeClosed) return 'right eye closed'
+        if(faceTurnedLeft > faceTurnedRight) return 'head turned left'
+        if(faceTurnedLeft < faceTurnedRight) return 'head turned right'
         
-        if (smileThreshold) return 'smile'
-        else if (laughThreshold) return 'laugh'
-        else if (cryThreshold) return 'cry'
-        else if (surprisedThreshold) return 'surprised';
-        else if (sadThreshold) return 'sad';
-        else if (angryThreshold) return 'angry';
-        else if (blinkLeftEyeThreshold) return 'blink left eye';
-        else if (blinkRightEyeThreshold) return 'blink right eye';
-        else if (turnHeadLeftThreshold) return 'turn your head left';
-        else if (turnHeadRightThreshold) return 'turn your head right';
-        else return 'neutral'
+
+
+        // if (smileThreshold) return 'smile'
+        // else if (laughThreshold) return 'laugh'
+        // else if (cryThreshold) return 'cry'
+        // else if (surprisedThreshold) return 'surprised';
+        // else if (sadThreshold) return 'sad';
+        // else if (angryThreshold) return 'angry';
     }
 
     return (
