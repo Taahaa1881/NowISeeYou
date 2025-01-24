@@ -3,16 +3,20 @@ import { FaceMesh } from '@mediapipe/face_mesh'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import * as cam from '@mediapipe/camera_utils'
 
-function FaceDetection({level, setDetectedExpression}) {
+function FaceDetection({ level, setDetectedExpression }) {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
+
+    const [expressionArray, setExpressionArray] = useState([])      // stores an array of recent expressions
+    const expressionArrayMaxLength = 20
+    const confidenceThreshold = 0.7
 
     useEffect(() => {
         const videoElement = videoRef.current
         const canvasElement = canvasRef.current
         const canvasCtx = canvasElement.getContext('2d')
 
-        // Initialized FaceMesh model 
+        // initialized FaceMesh model 
         const faceMesh = new FaceMesh({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
         })
@@ -24,8 +28,7 @@ function FaceDetection({level, setDetectedExpression}) {
         })
 
         faceMesh.onResults((results) => {
-            // Clear canvas
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)    // Clear canvas
 
             // Flip the canvas horizontally
             canvasCtx.save()
@@ -52,7 +55,8 @@ function FaceDetection({level, setDetectedExpression}) {
                 }
 
                 const expression = detectExpression(results.multiFaceLandmarks[0])
-                setDetectedExpression(expression || 'no face')
+                updateExpressionArray(expression)
+                // setDetectedExpression(expression || 'no face')
             }
 
             // restore the canvas to its original state
@@ -83,6 +87,31 @@ function FaceDetection({level, setDetectedExpression}) {
             }
           }
     }, [level])
+
+    function updateExpressionArray(expression) {
+        setExpressionArray((prevExpression) => {
+            const updatedExpressionArray = [...prevExpression, expression].slice(-expressionArrayMaxLength)
+
+            const expressionCount = updatedExpressionArray.reduce((count, exp) => {
+                count[exp] = (count[exp] || 0) + 1
+                return count
+            }, {})
+
+            const mostConfidentExpression = Object.keys(expressionCount).reduce((a, b) =>
+                expressionCount[a] > expressionCount[b] ? a : b
+            )
+
+            const confidence = expressionCount[mostConfidentExpression] / updatedExpressionArray.length
+
+            if( confidence >= confidenceThreshold) {
+                setDetectedExpression(mostConfidentExpression)
+            }
+
+            // console.log('Updated Expression Array:', updatedExpressionArray);
+
+            return updatedExpressionArray
+        }) 
+    }
 
     function detectExpression(landmarks) {
         const mouthOpen = landmarks[13].y - landmarks[14].y
