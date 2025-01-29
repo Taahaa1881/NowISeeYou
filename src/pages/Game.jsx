@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react'
 import FaceDetection from '../components/faceDetection'
 
 function Game() {
-    const expressions = ['left eye closed', 'right eye closed', 'head turned left', 'head turned right', 'smile', 'sad', 'cry', 'surprised', 'angry', 'laugh', 'neutral']
+    const expressions = ['left eye closed', 'right eye closed', 'head turned left', 'head turned right', 'smile', 'sad face', 'surprised face', 'angry', 'laugh', 'neutral']
 
     const [score, setScore] = useState(0)
     const [level, setLevel] = useState(1)
-    const [accuracy, setAcuracy] = useState(0)
+    const [accuracy, setAccuracy] = useState(0)
     const [gameStart, setGameStart] = useState(false)
     const [targetExpression, setTargetExpression] = useState(expressions[0])
     const [detectedExpression, setDetectedExpression] = useState('')
@@ -44,6 +44,7 @@ function Game() {
                         <FaceDetection 
                             level={level}
                             setDetectedExpression={setDetectedExpression}
+                            setAccuracy={setAccuracy}
                         />
                     </div>
                 ) : (
