@@ -3,7 +3,7 @@ import { FaceMesh } from '@mediapipe/face_mesh'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import * as cam from '@mediapipe/camera_utils'
 
-function FaceDetection({ level, setDetectedExpression }) {
+function FaceDetection({ level, setDetectedExpression, setAccuracy }) {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
 
@@ -97,6 +97,8 @@ function FaceDetection({ level, setDetectedExpression }) {
                 count[exp] = (count[exp] || 0) + 1
                 return count
             }, {})
+            const accuracy = (expressionCount[expression] / expressionArrayMaxLength ) * 100
+            setAccuracy(accuracy)
 
             const mostConfidentExpression = Object.keys(expressionCount).reduce((a, b) =>
                 expressionCount[a] > expressionCount[b] ? a : b
@@ -108,7 +110,7 @@ function FaceDetection({ level, setDetectedExpression }) {
                 setDetectedExpression(mostConfidentExpression)
             }
 
-            // console.log('Updated Expression Array:', updatedExpressionArray);
+            // console.log('Updated Expression Array:', updatedExpressionArray)
             return updatedExpressionArray
         }) 
     }
@@ -120,31 +122,29 @@ function FaceDetection({ level, setDetectedExpression }) {
         const mouthHeight = landmarks[13].y - landmarks[14].y
         const faceTurnedRight = landmarks[234].x - landmarks[127].x 
         const faceTurnedLeft = landmarks[356].x - landmarks[454].x 
-        const headTilt = landmarks[234].x - landmarks[454].x;
+        const headTilt = landmarks[234].x - landmarks[454].x
+        const mouthMidpoint = landmarks[13].x
+        const mouthCornersDown = landmarks[308].x < mouthMidpoint || landmarks[78].x < mouthMidpoint
 
         // threshold for expressions
         const leftEyeClosed = closeLeftEye > -0.01
         const rightEyeClosed = closeRightEye > -0.01
-        const smileThreshold = mouthWidth > 0.1 && mouthHeight < 0.0001
-         
-        const sadThreshold = mouthWidth / mouthHeight < 1.2 && mouthOpen > 0.01; // Narrower mouth and slight openness
-        const cryThreshold = sadThreshold && mouthOpen > 0.05; // Open mouth in sadness
-        const surprisedThreshold =
-        mouthOpen > 0.05 
-        // &&
-        // leftEyeBlink > -0.02 &&
-        // rightEyeBlink > -0.02 &&
-        mouthWidth / mouthHeight < 1.8; // Open mouth and eyes, but not too wide
-        const angryThreshold =
-        mouthOpen > 0.03 
-        // &&
-        // leftEyeBlink < -0.03 &&
-        // rightEyeBlink < -0.03; // Strongly furrowed brows with open mouth
-        const laughThreshold = smileThreshold && mouthOpen > 0.08; // Wide smile and open mouth
-        const neutralFace = Math.abs(headTilt) > 0.25 && Math.abs(headTilt) < 0.3 && !leftEyeClosed && !rightEyeClosed && !smileThreshold 
+        const smileThreshold = mouthWidth > 0.1 && mouthHeight < 0.0001 
+        const sadThreshold = mouthWidth < 0.1 && mouthHeight >= 0.0001 && mouthCornersDown 
+        const surprisedThreshold = Math.abs(mouthHeight) > 0.07 && !leftEyeClosed && !rightEyeClosed
 
+        const neutralFace = Math.abs(headTilt) > 0.25 && Math.abs(headTilt) < 0.3 && !leftEyeClosed && !rightEyeClosed && !smileThreshold && !sadThreshold
+
+        // const angryThreshold =
+        // mouthOpen > 0.03 
+        // // &&
+        // // leftEyeBlink < -0.03 &&
+        // // rightEyeBlink < -0.03; // Strongly furrowed brows with open mouth
+        // const laughThreshold = smileThreshold && mouthOpen > 0.08; // Wide smile and open mouth
         
         console.log('Threshold Debug:', {
+            mouthCornersDown,
+            mouthMidpoint,
             headTilt,
             closeLeftEye,
             closeRightEye,
@@ -152,28 +152,21 @@ function FaceDetection({ level, setDetectedExpression }) {
             mouthHeight,
             smileThreshold,
             sadThreshold,
-            cryThreshold,
             surprisedThreshold,
-            angryThreshold,
-            laughThreshold,
+            // angryThreshold,
+            // laughThreshold,
         })
 
+        if(sadThreshold) return 'sad face'
+        if(surprisedThreshold) return 'surprised face'
         if(neutralFace) return 'neutral face'
         if(smileThreshold) return 'smile'
         if(leftEyeClosed) return 'left eye closed'
         if(rightEyeClosed) return 'right eye closed'
         if(faceTurnedLeft > faceTurnedRight) return 'head turned left'
         if(faceTurnedLeft < faceTurnedRight) return 'head turned right'
-        
-
-
-        // if (smileThreshold) return 'smile'
-        // else if (laughThreshold) return 'laugh'
-        // else if (cryThreshold) return 'cry'
-        // else if (surprisedThreshold) return 'surprised';
-        // else if (sadThreshold) return 'sad';
-        // else if (angryThreshold) return 'angry';
     }
+    
 
     return (
         <div>
