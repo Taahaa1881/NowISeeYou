@@ -139,8 +139,8 @@ function FaceDetection({ level, setDetectedExpression, setAccuracy }) {
         // mouthOpen > 0.03 
         // // &&
         // // leftEyeBlink < -0.03 &&
-        // // rightEyeBlink < -0.03; // Strongly furrowed brows with open mouth
-        // const laughThreshold = smileThreshold && mouthOpen > 0.08; // Wide smile and open mouth
+        // // rightEyeBlink < -0.03; 
+        // const laughThreshold = smileThreshold && mouthOpen > 0.08; 
         
         console.log('Threshold Debug:', {
             mouthCornersDown,
