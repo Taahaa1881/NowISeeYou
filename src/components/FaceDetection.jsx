@@ -118,6 +118,8 @@ function FaceDetection({ level, setDetectedExpression, setAccuracy }) {
     function detectExpression(landmarks) {
         const closeLeftEye = landmarks[386].y - landmarks[374].y
         const closeRightEye = landmarks[159].y - landmarks[145].y
+        const leftEyebrow = landmarks[55].y - landmarks[374].y
+        const rightEyebrow = landmarks[285].y - landmarks[145].y
         const mouthWidth = landmarks[308].x - landmarks[78].x
         const mouthHeight = landmarks[13].y - landmarks[14].y
         const faceTurnedRight = landmarks[234].x - landmarks[127].x 
@@ -129,20 +131,16 @@ function FaceDetection({ level, setDetectedExpression, setAccuracy }) {
         // threshold for expressions
         const leftEyeClosed = closeLeftEye > -0.01
         const rightEyeClosed = closeRightEye > -0.01
-        const smileThreshold = mouthWidth > 0.1 && mouthHeight < 0.0001 
-        const sadThreshold = mouthWidth < 0.1 && mouthHeight >= 0.0001 && mouthCornersDown 
+        const smileThreshold = mouthWidth > 0.11 && mouthHeight < 0.0001 
+        const sadThreshold = mouthWidth > 0.1 && mouthHeight >= 0.0001 && mouthCornersDown && !leftEyeClosed && !rightEyeClosed
         const surprisedThreshold = Math.abs(mouthHeight) > 0.07 && !leftEyeClosed && !rightEyeClosed
+        const angryThreshold = Math.abs(leftEyebrow) <  0.03 && Math.abs(rightEyebrow) < 0.05 && !smileThreshold && mouthWidth < 0.15 
 
-        const neutralFace = Math.abs(headTilt) > 0.25 && Math.abs(headTilt) < 0.3 && !leftEyeClosed && !rightEyeClosed && !smileThreshold && !sadThreshold
-
-        // const angryThreshold =
-        // mouthOpen > 0.03 
-        // // &&
-        // // leftEyeBlink < -0.03 &&
-        // // rightEyeBlink < -0.03; 
-        // const laughThreshold = smileThreshold && mouthOpen > 0.08; 
+        const neutralFace = Math.abs(headTilt) > 0.25 && Math.abs(headTilt) < 0.3 && !leftEyeClosed && !rightEyeClosed && !smileThreshold && !sadThreshold && !surprisedThreshold && !angryThreshold
         
         console.log('Threshold Debug:', {
+            leftEyebrow,
+            rightEyebrow,
             mouthCornersDown,
             mouthMidpoint,
             headTilt,
@@ -153,18 +151,19 @@ function FaceDetection({ level, setDetectedExpression, setAccuracy }) {
             smileThreshold,
             sadThreshold,
             surprisedThreshold,
-            // angryThreshold,
-            // laughThreshold,
+            angryThreshold,
         })
 
+        if(neutralFace) return 'neutral face'
+        if(angryThreshold) return 'angry face'
         if(sadThreshold) return 'sad face'
         if(surprisedThreshold) return 'surprised face'
-        if(neutralFace) return 'neutral face'
         if(smileThreshold) return 'smile'
         if(leftEyeClosed) return 'left eye closed'
         if(rightEyeClosed) return 'right eye closed'
         if(faceTurnedLeft > faceTurnedRight) return 'head turned left'
         if(faceTurnedLeft < faceTurnedRight) return 'head turned right'
+
     }
     
 

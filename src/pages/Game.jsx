@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import FaceDetection from '../components/faceDetection'
 
 function Game() {
-    const expressions = ['left eye closed', 'right eye closed', 'head turned left', 'head turned right', 'smile', 'sad face', 'surprised face', 'angry', 'laugh', 'neutral']
+    const expressions = ['left eye closed', 'right eye closed', 'head turned left', 'head turned right', 'smile', 'sad face', 'surprised face', 'angry face']
 
     const [score, setScore] = useState(0)
     const [level, setLevel] = useState(1)
