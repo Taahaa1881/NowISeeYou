@@ -25,6 +25,9 @@ function Game() {
             setLevel(prevLevel => prevLevel + 1)
             setTargetExpression(expressions[level])
         } else {
+            setScore(0)
+            setLevel(1)
+            setGameStart(false)
             alert("Congratulations! You've completed all levels!!")
         }
     }
