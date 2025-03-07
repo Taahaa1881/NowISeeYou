@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import FaceDetection from '../components/faceDetection'
+import { motion } from 'framer-motion'
 
 function Game() {
     const expressions = ['left eye closed', 'right eye closed', 'head turned left', 'head turned right', 'smile', 'sad face', 'surprised face', 'angry face']
@@ -34,7 +35,14 @@ function Game() {
 
     return (
         <div className='bg-gray-900 min-h-screen h-screen flex flex-col items-center'>
-            <h1 className='text-white text-4xl font-bold p-8'>Face<span className='text-yellow-400'>Quest</span></h1>
+            <motion.h1
+                className='press-start-2p-regular text-white text-4xl font-bold p-8'
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+            >
+                Face<span className='text-yellow-400'>Quest</span>
+            </motion.h1>
             <div className='flex flex-col flex-grow justify-center items-center'>
                 {gameStart === true ? (
                     <div className='text-white flex flex-col justify-center items-center'>
@@ -51,10 +59,10 @@ function Game() {
                         />
                     </div>
                 ) : (
-                    <div className='flex flex-col justify-center items-center'>
-                        <div className='text-white text-xl'>Get ready to play FaceQuest!</div>
+                    <div className='press-start-2p-regular flex flex-col justify-center items-center'>
+                        <div className='text-white text-xl mb-5'>Get ready to play FaceQuest!</div>
                         <button 
-                            className='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 mt-6 rounded-lg shadow-lg ' 
+                            className='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 mt-6 rounded-lg shadow-lg' 
                             onClick={toggleGame}
                         >
                             Start Game
