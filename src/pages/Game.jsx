@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import FaceDetection from '../components/faceDetection'
 import { motion } from 'framer-motion'
+import useSound from 'use-sound'
+import startSound from "/sounds/8bit-game-start.wav"
+import levelCompleteSound from "/sounds/8bit-level-complete.mp3"
+import gameCompleteSound from "/sounds/8bit-game-complete.wav"
 
 function Game() {
     const expressions = ['left eye closed', 'right eye closed', 'head turned left', 'head turned right', 'smile', 'sad face', 'surprised face', 'angry face']
@@ -11,18 +15,23 @@ function Game() {
     const [gameStart, setGameStart] = useState(false)
     const [targetExpression, setTargetExpression] = useState(expressions[0])
     const [detectedExpression, setDetectedExpression] = useState('')
+    const [ playGameStart ] = useSound(startSound)
+    const [ playLevelComplete ] = useSound(levelCompleteSound)
+    const [ playGameComplete ] = useSound(gameCompleteSound)
 
     if (detectedExpression === targetExpression) {
+        playLevelComplete()
         handleLevelCompletion()
     }
 
     function toggleGame() {
         setGameStart(!gameStart)
+        gameStart === true ? playGameComplete() : playGameStart()
     }
 
     function handleLevelCompletion() {
         setScore(prevScore => prevScore + 10)
-        if(level < expressions.length -1) {
+        if(level < expressions.length ) {
             setLevel(prevLevel => prevLevel + 1)
             setTargetExpression(expressions[level])
         } else {
