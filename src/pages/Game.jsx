@@ -45,26 +45,26 @@ function Game() {
     }
 
     return (
-        <div className='bg-gray-900 min-h-screen h-screen flex flex-col items-center'>
+        <div className='bg-gray-900 min-h-screeen h-screen w-screen flex flex-col items-center'>
             <motion.h1
-                className='press-start-2p-regular text-white text-4xl font-bold p-8'
+                className='press-start-2p-regular text-white text-4xl font-bold p-10'
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
             >
                 Face<span className='text-yellow-400'>Quest</span>
             </motion.h1>
-            <div className='flex flex-col flex-grow justify-center items-center'>
+            <div className='flex flex-col flex-grow justify-center items-center w-[75%]'>
                 {gameStart ? (
-                    <div className='text-white flex flex-col justify-center items-center w-[100%]'>
+                    <div className='text-white flex flex-col justify-center items-center w-full'>
                         <div className='press-start-2p-regular text-xl mb-0'>Level {level}</div>
-                        <div className='w-3/4 bg-gray-700 rounded-full h-2 mb-8 relative'>
+                        <div className='w-3/4 bg-gray-700 rounded-full h-2 mb-16 relative'>
                             <div className='bg-green-500 h-2 w-[100%] rounded-full transition-all duration-500' style={{ width: `${progress}%` }}></div>
                         </div>
                         <div className='flex justify-center h-[80%] w-[100%]'>
                             <div className='flex flex-col items-center press-start-2p-regular w-[50%] mr-2 text-xl'>
                                 <div className='mb-6'>Target Expression</div>
-                                <img src={`/images/${targetExpression}.jpg`} alt={targetExpression} className='w-[700px] h-[350px] object-cover border-4 border-yellow-400 mb-4 rounded-lg' />
+                                <img src={`/images/${targetExpression}.jpg`} alt={targetExpression} className='w-[650px] h-[300px] object-cover border-4 border-yellow-400 mb-4 rounded-lg' />
                                 {targetExpression}
                             </div>
                             <FaceDetection 
@@ -74,9 +74,9 @@ function Game() {
                                 setAccuracy={setAccuracy}
                             />
                         </div>
-                        <div>Score: {score}</div>
+                        {/* <div>Score: {score}</div>
                         <div>Accuracy: {accuracy}%</div>
-                        <div>Minimum score to pass: 50</div>
+                        <div>Minimum score to pass: 50</div> */}
                         
                         
                     </div>

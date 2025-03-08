@@ -57,12 +57,11 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
                             color: '#C0C0C070',
                             lineWidth: 1,
                         })
-                        drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 2.5 })
+                        drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 1 })
                     }
                 }
                 const expression = detectExpression(results.multiFaceLandmarks[0])
                 updateExpressionArray(expression)
-                // setDetectedExpression(expression || 'no face')
             }
 
             // restore the canvas to its original state
@@ -179,10 +178,8 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
     
 
     return (
-        <div className='flex flex-col items-center press-start-2p-regular w-[50%] ml-2 text-xl'>
-            <div className='flex justify-center items-center'>Detected Expression
-                
-            </div>
+        <div className='flex flex-col items-center press-start-2p-regular w-[50%] h-full ml-2 text-xl'>
+            <div>Detected Expression</div>
             
             <video
                 ref={videoRef}
@@ -198,7 +195,7 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
                 playsInline
             />
 
-            <div className="relative z-10 flex items-center space-x-2">
+            <div className="relative z-10 flex items-center space-x-2 ">
                 <input
                     type="checkbox"
                     id="showLandmarks"
@@ -219,7 +216,7 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
 
             <canvas
                 ref={canvasRef}
-                className='w-[100%] h-[85%] border-4 border-yellow-400 mb-4 rounded-lg'
+                className='w-full h-[85%] border-4 border-yellow-400 mb-4 rounded-lg'
             />
             {detectedExpression || 'None'}
         </div>
