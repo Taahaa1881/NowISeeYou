@@ -26,7 +26,7 @@ function Game() {
 
     function toggleGame() {
         setGameStart(!gameStart)
-        gameStart === true ? playGameComplete() : playGameStart()
+        gameStart ? playGameComplete() : playGameStart()
     }
 
     function handleLevelCompletion() {
@@ -53,19 +53,27 @@ function Game() {
                 Face<span className='text-yellow-400'>Quest</span>
             </motion.h1>
             <div className='flex flex-col flex-grow justify-center items-center'>
-                {gameStart === true ? (
-                    <div className='text-white flex flex-col justify-center items-center'>
-                        <div>Level: {level}</div>
+                {gameStart ? (
+                    <div className='text-white flex flex-col justify-center items-center w-[100%]'>
+                        <div className='press-start-2p-regular text-xl mb-4'>Level {level}</div>
+                        
+                        <div className='flex justify-center bg-blue-200 h-[80%] w-[90%]'>
+                            <div className='flex flex-col items-center press-start-2p-regular w-[50%] '>
+                                <div className='text-xl'>Target Expression</div>
+                                <img src={`/images/${targetExpression}.jpg`} alt={targetExpression} className='w-[100%] h-[85%] object-cover border-4 border-yellow-400 mb-4 rounded-lg' />
+                                {targetExpression}
+                            </div>
+                            <FaceDetection 
+                                level={level}
+                                setDetectedExpression={setDetectedExpression}
+                                setAccuracy={setAccuracy}
+                            />
+                        </div>
                         <div>Score: {score}</div>
                         <div>Accuracy: {accuracy}%</div>
                         <div>Minimum score to pass: 50</div>
-                        <div>Target Expression: {targetExpression}</div>
                         <div>Detected Expression: {detectedExpression || 'None'}</div>
-                        <FaceDetection 
-                            level={level}
-                            setDetectedExpression={setDetectedExpression}
-                            setAccuracy={setAccuracy}
-                        />
+                        
                     </div>
                 ) : (
                     <div className='press-start-2p-regular flex flex-col justify-center items-center'>
