@@ -7,14 +7,19 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
 
+    const [landmarkVisible, setLandmarksVisible] = useState(true)
     const [expressionArray, setExpressionArray] = useState([])      // stores an array of recent expressions
     const expressionArrayMaxLength = 20
     const confidenceThreshold = 0.7
+
+    const landmarkVisibleRef = useRef(landmarkVisible)
 
     useEffect(() => {
         const videoElement = videoRef.current
         const canvasElement = canvasRef.current
         const canvasCtx = canvasElement.getContext('2d')
+
+        landmarkVisibleRef.current = landmarkVisible
 
         // initialized FaceMesh model 
         const faceMesh = new FaceMesh({
@@ -46,14 +51,15 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
 
             // Draw face landmarks
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                for (const landmarks of results.multiFaceLandmarks) {
-                    drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_TESSELATION, {
-                        color: '#C0C0C070',
-                        lineWidth: 1,
-                    })
-                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 2.5 })
+                if(landmarkVisibleRef.current) {
+                    for (const landmarks of results.multiFaceLandmarks) {
+                        drawConnectors(canvasCtx, landmarks, FaceMesh.FACEMESH_TESSELATION, {
+                            color: '#C0C0C070',
+                            lineWidth: 1,
+                        })
+                        drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1, radius: 2.5 })
+                    }
                 }
-
                 const expression = detectExpression(results.multiFaceLandmarks[0])
                 updateExpressionArray(expression)
                 // setDetectedExpression(expression || 'no face')
@@ -86,7 +92,7 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
                 videoElement.srcObject.getTracks().forEach((track) => track.stop())
             }
           }
-    }, [level])
+    }, [level, landmarkVisible])
     
 
     function updateExpressionArray(expression) {
@@ -138,21 +144,21 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
 
         const neutralFace = Math.abs(headTilt) > 0.25 && Math.abs(headTilt) < 0.3 && !leftEyeClosed && !rightEyeClosed && !smileThreshold && !sadThreshold && !surprisedThreshold && !angryThreshold
         
-        console.log('Threshold Debug:', {
-            leftEyebrow,
-            rightEyebrow,
-            mouthCornersDown,
-            mouthMidpoint,
-            headTilt,
-            closeLeftEye,
-            closeRightEye,
-            mouthWidth,
-            mouthHeight,
-            smileThreshold,
-            sadThreshold,
-            surprisedThreshold,
-            angryThreshold,
-        })
+        // console.log('Threshold Debug:', {
+        //     leftEyebrow,
+        //     rightEyebrow,
+        //     mouthCornersDown,
+        //     mouthMidpoint,
+        //     headTilt,
+        //     closeLeftEye,
+        //     closeRightEye,
+        //     mouthWidth,
+        //     mouthHeight,
+        //     smileThreshold,
+        //     sadThreshold,
+        //     surprisedThreshold,
+        //     angryThreshold,
+        // })
 
         if(neutralFace) return 'neutral face'
         if(angryThreshold) return 'angry face'
@@ -165,11 +171,19 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
         if(faceTurnedLeft < faceTurnedRight) return 'head turned right'
 
     }
+
+    function showLandmarks() {
+        setLandmarksVisible((prev) => !prev)
+        console.log(landmarkVisible)
+    }
     
 
     return (
         <div className='flex flex-col items-center press-start-2p-regular w-[50%] ml-2 text-xl'>
-            <div>Detected Expression</div>
+            <div className='flex justify-center items-center'>Detected Expression
+                
+            </div>
+            
             <video
                 ref={videoRef}
                 style={{
@@ -183,6 +197,25 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
                 }}
                 playsInline
             />
+
+            <div className="relative z-10 flex items-center space-x-2">
+                <input
+                    type="checkbox"
+                    id="showLandmarks"
+                    className="sr-only"
+                    checked={landmarkVisible}
+                    onChange={showLandmarks}
+                />
+                <label
+                    htmlFor="showLandmarks"
+                    className="w-12 h-6 bg-gray-600 rounded-full flex items-center p-1 cursor-pointer transition-all"
+                >
+                    <span
+                        className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${landmarkVisible ? 'translate-x-6 bg-green-500' : 'translate-x-0 bg-gray-300'}`}
+                    ></span>
+                </label>
+                <div className='text-sm ml-4'>Show Landmarks</div>
+            </div>
 
             <canvas
                 ref={canvasRef}
