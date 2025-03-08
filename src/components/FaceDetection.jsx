@@ -3,7 +3,7 @@ import { FaceMesh } from '@mediapipe/face_mesh'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 import * as cam from '@mediapipe/camera_utils'
 
-function FaceDetection({ level, setDetectedExpression, setAccuracy }) {
+function FaceDetection({ level, detectedExpression, setDetectedExpression, setAccuracy }) {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
 
@@ -168,31 +168,27 @@ function FaceDetection({ level, setDetectedExpression, setAccuracy }) {
     
 
     return (
-        <div>
+        <div className='flex flex-col items-center press-start-2p-regular w-[50%] ml-2 text-xl'>
+            <div>Detected Expression</div>
             <video
                 ref={videoRef}
                 style={{
                     position: 'absolute',
                     top: '10px',
                     left: '10px',
-                    zIndex: -1,
+                    zIndex: 4,
                     visibility: 'hidden', 
-                    width: '640px',
-                    height: '480px',
+                    width: '100%',
+                    height: '95%',
                 }}
                 playsInline
             />
 
             <canvas
                 ref={canvasRef}
-                style={{
-                    border: '1px solid black',
-                    width: '640px',
-                    height: '480px',
-                }}
-                width="640"
-                height="480"
+                className='w-[100%] h-[85%] border-4 border-yellow-400 mb-4 rounded-lg'
             />
+            {detectedExpression || 'None'}
         </div>
     )
 }
