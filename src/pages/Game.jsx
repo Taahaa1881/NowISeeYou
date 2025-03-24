@@ -21,6 +21,7 @@ function Game() {
     const [ playLevelComplete ] = useSound(levelCompleteSound)
     const [ playGameComplete ] = useSound(gameCompleteSound)
 
+    // progress bar for levels
     const progress = ((level / expressions.length) * 100) -10
 
     useEffect(() => {
@@ -30,6 +31,7 @@ function Game() {
         }
     }, [detectedExpression])   
 
+    // toggle game start / end
     function toggleGame() {
         setGameStart(!gameStart)
         gameStart ? playGameComplete() : playGameStart()
@@ -45,7 +47,8 @@ function Game() {
             playGameComplete()
         }
     }
-
+    
+    // resets the game 
     function resetGame() {
         setScore(0)
         setLevel(1)
@@ -57,6 +60,7 @@ function Game() {
 
     return (
         <div className='bg-gray-900 min-h-screeen h-screen w-screen flex flex-col items-center'>
+            {/* title */}
             <motion.h1
                 className='press-start-2p-regular text-white text-4xl font-bold p-10'
                 initial={{ opacity: 0, y: -20 }}
@@ -65,7 +69,9 @@ function Game() {
             >
                 Face<span className='text-yellow-400'>Quest</span>
             </motion.h1>
+
             <div className='flex flex-col flex-grow justify-center items-center w-[75%]'>
+                {/* game interface */}
                 {gameStart && !gameResult ? (
                     <div className='text-white flex flex-col justify-center items-center w-full'>
                         <div className='press-start-2p-regular text-xl mb-0'>Level {level}</div>
@@ -90,6 +96,7 @@ function Game() {
                         <div>Minimum score to pass: 50</div> */}
                     </div>
                 ) : (
+                    // game start screen
                     <div className='press-start-2p-regular flex flex-col justify-center items-center'>
                         <div className='text-white text-xl mb-5 text-center'>Get ready to play FaceQuest!</div>
                         <button 
@@ -101,6 +108,8 @@ function Game() {
                     </div>
                 )}
             </div>
+
+            {/* game end and reset */}
             { gameResult ? (
                 <div className='fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 z-50'>
                     <div className='bg-green-200 border border-yellow-400 p-8 py-24 rounded-lg shadow-lg text-center w-fit'>

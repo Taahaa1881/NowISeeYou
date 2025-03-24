@@ -143,6 +143,7 @@ function FaceDetection({ level, detectedExpression, setDetectedExpression, setAc
 
         const neutralFace = Math.abs(headTilt) > 0.25 && Math.abs(headTilt) < 0.3 && !leftEyeClosed && !rightEyeClosed && !smileThreshold && !sadThreshold && !surprisedThreshold && !angryThreshold
         
+        // testing, debugging
         // console.log('Threshold Debug:', {
         //     leftEyebrow,
         //     rightEyebrow,
