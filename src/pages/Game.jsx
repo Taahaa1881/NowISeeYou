@@ -15,16 +15,20 @@ function Game() {
     const [gameStart, setGameStart] = useState(false)
     const [targetExpression, setTargetExpression] = useState(expressions[0])
     const [detectedExpression, setDetectedExpression] = useState('')
+    const [gameResult, setGameResult] = useState(false)
+
     const [ playGameStart ] = useSound(startSound)
     const [ playLevelComplete ] = useSound(levelCompleteSound)
     const [ playGameComplete ] = useSound(gameCompleteSound)
 
     const progress = ((level / expressions.length) * 100) -10
 
-    if (detectedExpression === targetExpression) {
-        playLevelComplete()
-        handleLevelCompletion()
-    }
+    useEffect(() => {
+        if (detectedExpression === targetExpression) {
+            playLevelComplete()
+            handleLevelCompletion()
+        }
+    }, [detectedExpression])   
 
     function toggleGame() {
         setGameStart(!gameStart)
@@ -33,15 +37,22 @@ function Game() {
 
     function handleLevelCompletion() {
         setScore(prevScore => prevScore + 10)
-        if(level < expressions.length ) {
+        if(level < expressions.length) {
             setLevel(prevLevel => prevLevel + 1)
             setTargetExpression(expressions[level])
         } else {
-            setScore(0)
-            setLevel(1)
-            setGameStart(false)
-            alert("Congratulations! You've completed all levels!!")
+            setGameResult(true)
+            playGameComplete()
         }
+    }
+
+    function resetGame() {
+        setScore(0)
+        setLevel(1)
+        setGameStart(false)
+        setGameResult(false)
+        setDetectedExpression('')
+        setTargetExpression(expressions[0])
     }
 
     return (
@@ -55,7 +66,7 @@ function Game() {
                 Face<span className='text-yellow-400'>Quest</span>
             </motion.h1>
             <div className='flex flex-col flex-grow justify-center items-center w-[75%]'>
-                {gameStart ? (
+                {gameStart && !gameResult ? (
                     <div className='text-white flex flex-col justify-center items-center w-full'>
                         <div className='press-start-2p-regular text-xl mb-0'>Level {level}</div>
                         <div className='w-3/4 bg-gray-700 rounded-full h-2 mb-16 relative'>
@@ -77,12 +88,10 @@ function Game() {
                         {/* <div>Score: {score}</div>
                         <div>Accuracy: {accuracy}%</div>
                         <div>Minimum score to pass: 50</div> */}
-                        
-                        
                     </div>
                 ) : (
                     <div className='press-start-2p-regular flex flex-col justify-center items-center'>
-                        <div className='text-white text-xl mb-5'>Get ready to play FaceQuest!</div>
+                        <div className='text-white text-xl mb-5 text-center'>Get ready to play FaceQuest!</div>
                         <button 
                             className='bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 mt-6 rounded-lg shadow-lg' 
                             onClick={toggleGame}
@@ -92,6 +101,16 @@ function Game() {
                     </div>
                 )}
             </div>
+            { gameResult ? (
+                <div className='fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 z-50'>
+                    <div className='bg-green-200 border border-yellow-400 p-8 py-24 rounded-lg shadow-lg text-center w-fit'>
+                        <h1 className='press-start-2p-regular text-4xl'>Yay! You completed the Face<span className='text-yellow-400'>Quest</span></h1>
+                        <button onClick={resetGame} className='press-start-2p-regular bg-blue-600 hover:bg-blue-700 text-white py-6 px-8 mt-16 rounded-lg'>Reset Game</button>
+                    </div>
+                </div>
+            ) : (
+                <div></div>
+            )}
             <footer className='text-gray-600 mt-6'>©2025 FaceQuest. All rights reserved. <span className='text-gray-900 block text-center'>Github: <a href="https://github.com/OgAeons">OgAeons</a></span></footer>
         </div>
     )
