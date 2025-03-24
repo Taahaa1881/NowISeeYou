@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import FaceDetection from '../components/faceDetection'
+import FaceDetection from '../components/FaceDetection'
 import { motion } from 'framer-motion'
 import useSound from 'use-sound'
 import startSound from "/sounds/8bit-game-start.wav"
